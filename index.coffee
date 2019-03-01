@@ -37,7 +37,7 @@ module.exports = class CallbackHandleError
     return
 
   handlesError: (code_node, var_name)->
-    found_non_usage = false
+    non_usages = []
     found_usage = false
 
     code_node.traverseChildren true, (child)->
@@ -46,6 +46,7 @@ module.exports = class CallbackHandleError
 
       switch node_type
         when 'If'
+          found_non_usage = non_usages.length > 0
           # check for if they use the error in an if
           child.condition.traverseChildren false, (inner_child)->
             inner_type = getNodeType inner_child
@@ -60,6 +61,9 @@ module.exports = class CallbackHandleError
 
         when 'Call'
           # passing the error to another call is considered using it
+          function_name = child.variable?.base?.value
+          found_non_usage = non_usages.some (a) -> a isnt function_name
+
           for arg in child.args
             arg.traverseChildren false, (inner_child)->
               inner_type = getNodeType inner_child
@@ -82,8 +86,8 @@ module.exports = class CallbackHandleError
                 return false
 
         when 'Value'
-          if child.base?.value isnt var_name
-            found_non_usage = true
+          if not (child.base?.value in [undefined, var_name, 'this'])
+            non_usages.push child.base?.value
             return true
 
       # if we already found a usage, break out of the traverse

@@ -60,14 +60,15 @@
     };
 
     CallbackHandleError.prototype.handlesError = function(code_node, var_name) {
-      var found_non_usage, found_usage;
-      found_non_usage = false;
+      var found_usage, non_usages;
+      non_usages = [];
       found_usage = false;
       code_node.traverseChildren(true, function(child) {
-        var arg, i, inner_child_type, j, len, len1, node_type, param, ref, ref1, ref2;
+        var arg, found_non_usage, function_name, i, inner_child_type, j, len, len1, node_type, param, ref, ref1, ref2, ref3, ref4, ref5, ref6;
         node_type = getNodeType(child);
         switch (node_type) {
           case 'If':
+            found_non_usage = non_usages.length > 0;
             child.condition.traverseChildren(false, function(inner_child) {
               var inner_type;
               inner_type = getNodeType(inner_child);
@@ -84,9 +85,13 @@
             });
             break;
           case 'Call':
-            ref = child.args;
-            for (i = 0, len = ref.length; i < len; i++) {
-              arg = ref[i];
+            function_name = (ref = child.variable) != null ? (ref1 = ref.base) != null ? ref1.value : void 0 : void 0;
+            found_non_usage = non_usages.some(function(a) {
+              return a !== function_name;
+            });
+            ref2 = child.args;
+            for (i = 0, len = ref2.length; i < len; i++) {
+              arg = ref2[i];
               arg.traverseChildren(false, function(inner_child) {
                 var inner_type;
                 inner_type = getNodeType(inner_child);
@@ -104,9 +109,9 @@
             }
             return;
           case 'Code':
-            ref1 = child.params;
-            for (j = 0, len1 = ref1.length; j < len1; j++) {
-              param = ref1[j];
+            ref3 = child.params;
+            for (j = 0, len1 = ref3.length; j < len1; j++) {
+              param = ref3[j];
               inner_child_type = getNodeType(param);
               if (inner_child_type === 'Param') {
                 if (param.name.value === var_name) {
@@ -116,8 +121,8 @@
             }
             break;
           case 'Value':
-            if (((ref2 = child.base) != null ? ref2.value : void 0) !== var_name) {
-              found_non_usage = true;
+            if (!((ref4 = (ref5 = child.base) != null ? ref5.value : void 0) === (void 0) || ref4 === var_name || ref4 === 'this')) {
+              non_usages.push((ref6 = child.base) != null ? ref6.value : void 0);
               return true;
             }
         }
