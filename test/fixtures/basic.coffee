@@ -52,3 +52,11 @@ good 777, (stuff, ..., err, ttt)->
 badExpansion 777, (stuff, ..., err, ttt)-> # HIT
   callback ttt
   return
+
+bad2 777, (err, callback) -> # HIT
+  bad = 5
+  callback(err)
+
+bad3 777, (err, callback) -> # HIT
+  doSomething()
+  callback(err)

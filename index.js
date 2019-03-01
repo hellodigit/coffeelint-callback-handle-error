@@ -60,10 +60,11 @@
     };
 
     CallbackHandleError.prototype.handlesError = function(code_node, var_name) {
-      var found_usage;
+      var found_non_usage, found_usage;
+      found_non_usage = false;
       found_usage = false;
       code_node.traverseChildren(true, function(child) {
-        var arg, i, inner_child_type, j, len, len1, node_type, param, ref, ref1;
+        var arg, i, inner_child_type, j, len, len1, node_type, param, ref, ref1, ref2;
         node_type = getNodeType(child);
         switch (node_type) {
           case 'If':
@@ -74,8 +75,10 @@
                 case 'Literal':
                 case 'IdentifierLiteral':
                   if (inner_child.value === var_name) {
-                    found_usage = true;
-                    return false;
+                    if (!found_non_usage) {
+                      found_usage = true;
+                      return false;
+                    }
                   }
               }
             });
@@ -91,8 +94,10 @@
                   case 'Literal':
                   case 'IdentifierLiteral':
                     if (inner_child.value === var_name) {
-                      found_usage = true;
-                      return false;
+                      if (!found_non_usage) {
+                        found_usage = true;
+                        return false;
+                      }
                     }
                 }
               });
@@ -108,6 +113,12 @@
                   return false;
                 }
               }
+            }
+            break;
+          case 'Value':
+            if (((ref2 = child.base) != null ? ref2.value : void 0) !== var_name) {
+              found_non_usage = true;
+              return true;
             }
         }
         if (found_usage) {

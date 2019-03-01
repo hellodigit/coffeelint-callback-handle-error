@@ -37,6 +37,7 @@ module.exports = class CallbackHandleError
     return
 
   handlesError: (code_node, var_name)->
+    found_non_usage = false
     found_usage = false
 
     code_node.traverseChildren true, (child)->
@@ -52,8 +53,9 @@ module.exports = class CallbackHandleError
               # HACK: Handles change of token naming in CoffeeScript 1.11.0
               when 'Literal', 'IdentifierLiteral'
                 if inner_child.value is var_name
-                  found_usage = true
-                  return false
+                  if not found_non_usage
+                    found_usage = true
+                    return false
             return
 
         when 'Call'
@@ -65,8 +67,9 @@ module.exports = class CallbackHandleError
                 # HACK: Handles change of token naming in CoffeeScript 1.11.0
                 when 'Literal', 'IdentifierLiteral'
                   if inner_child.value is var_name
-                    found_usage = true
-                    return false
+                    if not found_non_usage
+                      found_usage = true
+                      return false
               return
           return
 
@@ -77,6 +80,11 @@ module.exports = class CallbackHandleError
             if inner_child_type is 'Param'
               if param.name.value is var_name
                 return false
+
+        when 'Value'
+          if child.base?.value isnt var_name
+            found_non_usage = true
+            return true
 
       # if we already found a usage, break out of the traverse
       if found_usage
