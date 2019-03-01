@@ -4,6 +4,7 @@
   "description": "Coffeelint rule finds instances of error objects passed through a callback not being handled",
   "main": "index.js",
   "scripts": {
+    "build": "coffee -c index.coffee",
     "test": "mocha --compilers coffee:coffee-script/register"
   },
   "repository": {
