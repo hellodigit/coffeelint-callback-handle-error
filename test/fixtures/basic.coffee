@@ -63,3 +63,9 @@ bad2 777, (err, callback)-> # HIT
 bad3 777, (err, callback)-> # HIT
   doSomething()
   callback(err)
+
+badObjDestructuring thing, (err, {A, B, C})-> # HIT
+  callback err
+
+badArrDestructuring thing, (err, [A, B, C])-> # HIT
+  callback err
