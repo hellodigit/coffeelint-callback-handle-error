@@ -37,11 +37,11 @@ module.exports = class CallbackHandleError
     return
 
   handlesError: (code_node, var_name)->
-    obj_idents = []
     non_usages = []
     found_usage = false
 
     code_node.traverseChildren true, (child)->
+
       node_type = getNodeType child
 
       switch node_type
@@ -86,19 +86,9 @@ module.exports = class CallbackHandleError
                 return false
 
         when 'Value'
-          # child_type = getNodeType child
-          if not (child.base?.value in [undefined, var_name, 'this'].concat(obj_idents))
+          if not (child.base?.value in [undefined, var_name, 'this'])
             non_usages.push child.base?.value
             return true
-
-        # allow param destructuring
-        # doSomething 777, (err, {A, B, C}) -> return done err if err
-        # doSomething 777, (err, [A, B, C]) -> return done err if err
-        when 'Arr', 'Obj'
-          for obj in child.objects
-            inner_child_type = getNodeType obj
-            if inner_child_type is 'Value'
-              obj_idents.push obj.base.value
 
       # if we already found a usage, break out of the traverse
       if found_usage
