@@ -73,5 +73,11 @@ bad3 777, (err, callback)-> # HIT
 badObjDestructuring thing, (err, {A, B, C})-> # HIT
   callback err
 
+okObjDestructuringWithDefault thing, (err, {A, B, C} = {})->
+  callback err
+
 badArrDestructuring thing, (err, [A, B, C])-> # HIT
+  callback err
+
+okArrDestructuringWithDefault thing, (err, [A, B, C] = [])->
   callback err
