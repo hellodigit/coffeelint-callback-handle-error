@@ -37,6 +37,7 @@ module.exports = class CallbackHandleError
     return
 
   handlesError: (code_node, var_name)->
+    obj_idents_pending = []
     obj_idents = []
     non_usages = []
     found_usage = false
@@ -91,14 +92,27 @@ module.exports = class CallbackHandleError
             non_usages.push child.base?.value
             return true
 
-        # allow param destructuring
-        # doSomething 777, (err, {A, B, C}) -> return done err if err
-        # doSomething 777, (err, [A, B, C]) -> return done err if err
-        when 'Arr', 'Obj'
-          for obj in child.objects
-            inner_child_type = getNodeType obj
-            if inner_child_type is 'Value'
-              obj_idents.push obj.base.value
+        # Allow object/array param destructuring with default.
+        # Default is important because without it, a property can be accessed
+        # on undefined, causing a JS runtime error.
+        #
+        # doSomething 777, (err, {A, B, C} = {}) -> return done err if err
+        # doSomething 777, (err, [A, B, C] = []) -> return done err if err
+        when 'Param'
+          nameType = getNodeType child.name
+          if nameType in ['Arr', 'Obj']
+            obj_idents_pending = []
+            for obj in child.name.objects
+              inner_child_type = getNodeType obj
+              if inner_child_type is 'Value'
+                obj_idents_pending.push obj.base.value
+
+            if child.value?.base
+              valueType = getNodeType child.value.base
+              if valueType is nameType
+                unless child.value.base.objects.length
+                  obj_idents = obj_idents.concat obj_idents_pending
+                  obj_idents_pending = []
 
       # if we already found a usage, break out of the traverse
       if found_usage

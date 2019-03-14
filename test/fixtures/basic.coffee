@@ -52,12 +52,6 @@ good 777, (stuff, ..., err, ttt)->
   callback err
   return
 
-goodObjDestructuring thing, (err, {A, B, C})->
-  callback err
-
-goodArrDestructuring thing, (err, [A, B, C])->
-  callback err
-
 badExpansion 777, (stuff, ..., err, ttt)-> # HIT
   callback ttt
   return

@@ -61,12 +61,13 @@
     };
 
     CallbackHandleError.prototype.handlesError = function(code_node, var_name) {
-      var found_usage, non_usages, obj_idents;
+      var found_usage, non_usages, obj_idents, obj_idents_pending;
+      obj_idents_pending = [];
       obj_idents = [];
       non_usages = [];
       found_usage = false;
       code_node.traverseChildren(true, function(child) {
-        var arg, found_non_usage, function_name, i, inner_child_type, j, k, len, len1, len2, node_type, obj, param, ref, ref1, ref2, ref3, ref4, ref5, ref6, ref7;
+        var arg, found_non_usage, function_name, i, inner_child_type, j, k, len, len1, len2, nameType, node_type, obj, param, ref, ref1, ref2, ref3, ref4, ref5, ref6, ref7, ref8, valueType;
         node_type = getNodeType(child);
         switch (node_type) {
           case 'If':
@@ -128,14 +129,26 @@
               return true;
             }
             break;
-          case 'Arr':
-          case 'Obj':
-            ref7 = child.objects;
-            for (k = 0, len2 = ref7.length; k < len2; k++) {
-              obj = ref7[k];
-              inner_child_type = getNodeType(obj);
-              if (inner_child_type === 'Value') {
-                obj_idents.push(obj.base.value);
+          case 'Param':
+            nameType = getNodeType(child.name);
+            if (nameType === 'Arr' || nameType === 'Obj') {
+              obj_idents_pending = [];
+              ref7 = child.name.objects;
+              for (k = 0, len2 = ref7.length; k < len2; k++) {
+                obj = ref7[k];
+                inner_child_type = getNodeType(obj);
+                if (inner_child_type === 'Value') {
+                  obj_idents_pending.push(obj.base.value);
+                }
+              }
+              if ((ref8 = child.value) != null ? ref8.base : void 0) {
+                valueType = getNodeType(child.value.base);
+                if (valueType === nameType) {
+                  if (!child.value.base.objects.length) {
+                    obj_idents = obj_idents.concat(obj_idents_pending);
+                    obj_idents_pending = [];
+                  }
+                }
               }
             }
         }
