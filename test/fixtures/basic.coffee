@@ -70,8 +70,14 @@ badObjDestructuring thing, (err, {A, B, C})-> # HIT
 okObjDestructuringWithDefault thing, (err, {A, B, C} = {})->
   callback err
 
+badObjDestructuringWithWrongTypeDefault thing, (err, {A, B, C} = [])-> # HIT
+  callback err
+
 badArrDestructuring thing, (err, [A, B, C])-> # HIT
   callback err
 
 okArrDestructuringWithDefault thing, (err, [A, B, C] = [])->
+  callback err
+
+badArrDestructuringWithWrongTypeDefault thing, (err, [A, B, C] = {})-> # HIT
   callback err
