@@ -1,6 +1,11 @@
 getNodeType = (node) ->
   return node.constructor.name
 
+ERROR_TYPES =
+  NO_ERROR: "NO_ERROR"
+  DEFAULT: "DEFAULT"
+  DESTRUCT_DEFAULT_REQUIRED: "DESTRUCT_DEFAULT_REQUIRED"
+
 module.exports = class CallbackHandleError
   rule:
     name: 'callback_handle_error'
@@ -27,8 +32,16 @@ module.exports = class CallbackHandleError
         for param in node.params
           var_name = param.name?.value
           for pattern in @errorVariablePatterns
-            if pattern.test(var_name) && !@handlesError(node, var_name)
-              @throwError node, "Error object '#{var_name}' in callback not handled"
+            if pattern.test(var_name)
+              error_type = @handlesError(node, var_name)
+              switch error_type
+                when ERROR_TYPES.NO_ERROR then do -> # do nothing
+                when ERROR_TYPES.DESTRUCT_DEFAULT_REQUIRED
+                  @throwError node, "Default must be specified when destructuring an array or object in a callback parameter"
+                when ERROR_TYPES.DEFAULT
+                  @throwError node, "Error object '#{var_name}' in callback not handled"
+                else
+                  @throwError node, "An unknown error occurred for '#{var_name}'"
               break
 
     node.eachChild (child)=>
@@ -40,6 +53,8 @@ module.exports = class CallbackHandleError
     obj_idents_pending = []
     obj_idents = []
     non_usages = []
+
+    error_type = null
     found_usage = false
 
     code_node.traverseChildren true, (child)->
@@ -114,12 +129,20 @@ module.exports = class CallbackHandleError
                   obj_idents = obj_idents.concat obj_idents_pending
                   obj_idents_pending = []
 
-      # if we already found a usage, break out of the traverse
-      if found_usage
+            if obj_idents_pending.length
+              error_type = ERROR_TYPES.DESTRUCT_DEFAULT_REQUIRED
+
+      # if we already found an error or usage, break out of the traverse
+      if error_type or found_usage
         return false
       return
 
-    return found_usage
+    if error_type
+      return error_type
+    else if found_usage
+      return ERROR_TYPES.NO_ERROR
+    else
+      return ERROR_TYPES.DEFAULT
 
   throwError: (node, message) ->
     err = @astApi.createError
