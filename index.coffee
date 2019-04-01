@@ -52,7 +52,7 @@ module.exports = class CallbackHandleError
 
   handlesError: (code_node, var_name)->
     obj_idents_pending = []
-    obj_idents = []
+    obj_idents = {}
     non_usages = {}
 
     error_type = null
@@ -102,8 +102,8 @@ module.exports = class CallbackHandleError
                 return false
 
         when 'Value'
-          if not (child.base?.value in [undefined, var_name, 'this'].concat(obj_idents))
-            non_usages[child.base?.value] = 1
+          if not (child.base?.value in [undefined, var_name, 'this']) and not obj_idents[child.base.value]
+            non_usages[child.base.value] = 1
             return true
 
         # Allow object/array param destructuring with default.
@@ -125,7 +125,7 @@ module.exports = class CallbackHandleError
               valueType = getNodeType child.value.base
               if valueType is nameType
                 unless child.value.base.objects.length
-                  obj_idents = obj_idents.concat obj_idents_pending
+                  obj_idents[key] = 1 for key in obj_idents_pending
                   obj_idents_pending = []
 
             if obj_idents_pending.length
