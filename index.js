@@ -83,15 +83,15 @@
       var error_type, found_usage, non_usages, obj_idents, obj_idents_pending;
       obj_idents_pending = [];
       obj_idents = [];
-      non_usages = [];
+      non_usages = {};
       error_type = null;
       found_usage = false;
       code_node.traverseChildren(true, function(child) {
-        var arg, found_non_usage, function_name, i, inner_child_type, j, k, len, len1, len2, nameType, node_type, obj, param, ref, ref1, ref2, ref3, ref4, ref5, ref6, ref7, ref8, valueType;
+        var arg, found_non_usage, function_name, i, inner_child_type, j, k, len, len1, len2, nameType, node_type, non_usage_length, obj, param, ref, ref1, ref2, ref3, ref4, ref5, ref6, ref7, ref8, valueType;
         node_type = getNodeType(child);
         switch (node_type) {
           case 'If':
-            found_non_usage = non_usages.length > 0;
+            found_non_usage = Object.keys(non_usages).length > 0;
             child.condition.traverseChildren(false, function(inner_child) {
               var inner_type;
               inner_type = getNodeType(inner_child);
@@ -109,9 +109,8 @@
             break;
           case 'Call':
             function_name = (ref = child.variable) != null ? (ref1 = ref.base) != null ? ref1.value : void 0 : void 0;
-            found_non_usage = non_usages.some(function(a) {
-              return a !== function_name;
-            });
+            non_usage_length = Object.keys(non_usages).length;
+            found_non_usage = (non_usage_length > 1) || (non_usage_length === 1 && !non_usages[function_name]);
             ref2 = child.args;
             for (i = 0, len = ref2.length; i < len; i++) {
               arg = ref2[i];
@@ -145,7 +144,7 @@
             break;
           case 'Value':
             if (!(ref4 = (ref5 = child.base) != null ? ref5.value : void 0, indexOf.call([void 0, var_name, 'this'].concat(obj_idents), ref4) >= 0)) {
-              non_usages.push((ref6 = child.base) != null ? ref6.value : void 0);
+              non_usages[(ref6 = child.base) != null ? ref6.value : void 0] = 1;
               return true;
             }
             break;

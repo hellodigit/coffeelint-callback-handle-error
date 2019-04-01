@@ -1,3 +1,4 @@
+# coffeelint: disable=max_line_length
 getNodeType = (node) ->
   return node.constructor.name
 
@@ -52,7 +53,7 @@ module.exports = class CallbackHandleError
   handlesError: (code_node, var_name)->
     obj_idents_pending = []
     obj_idents = []
-    non_usages = []
+    non_usages = {}
 
     error_type = null
     found_usage = false
@@ -62,7 +63,7 @@ module.exports = class CallbackHandleError
 
       switch node_type
         when 'If'
-          found_non_usage = non_usages.length > 0
+          found_non_usage = Object.keys(non_usages).length > 0
           # check for if they use the error in an if
           child.condition.traverseChildren false, (inner_child)->
             inner_type = getNodeType inner_child
@@ -77,7 +78,8 @@ module.exports = class CallbackHandleError
         when 'Call'
           # passing the error to another call is considered using it
           function_name = child.variable?.base?.value
-          found_non_usage = non_usages.some (a) -> a isnt function_name
+          non_usage_length = Object.keys(non_usages).length
+          found_non_usage = (non_usage_length > 1) or (non_usage_length is 1 and not non_usages[function_name])
 
           for arg in child.args
             arg.traverseChildren false, (inner_child)->
@@ -100,9 +102,8 @@ module.exports = class CallbackHandleError
                 return false
 
         when 'Value'
-          # child_type = getNodeType child
           if not (child.base?.value in [undefined, var_name, 'this'].concat(obj_idents))
-            non_usages.push child.base?.value
+            non_usages[child.base?.value] = 1
             return true
 
         # Allow object/array param destructuring with default.
