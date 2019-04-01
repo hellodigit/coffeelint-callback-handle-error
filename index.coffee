@@ -70,9 +70,8 @@ module.exports = class CallbackHandleError
               # HACK: Handles change of token naming in CoffeeScript 1.11.0
               when 'Literal', 'IdentifierLiteral'
                 if inner_child.value is var_name
-                  if not found_non_usage
-                    found_usage = true
-                    return false
+                  found_usage = true if not found_non_usage
+                  return false
             return
 
         when 'Call'
@@ -87,9 +86,8 @@ module.exports = class CallbackHandleError
                 # HACK: Handles change of token naming in CoffeeScript 1.11.0
                 when 'Literal', 'IdentifierLiteral'
                   if inner_child.value is var_name
-                    if not found_non_usage
-                      found_usage = true
-                      return false
+                    found_usage = true if not found_non_usage
+                    return false
               return
           return
 
@@ -133,7 +131,7 @@ module.exports = class CallbackHandleError
               error_type = ERROR_TYPES.DESTRUCT_DEFAULT_REQUIRED
 
       # if we already found an error or usage, break out of the traverse
-      if error_type or found_usage
+      if error_type or found_usage or found_non_usage
         return false
       return
 

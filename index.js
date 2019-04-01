@@ -101,8 +101,8 @@
                   if (inner_child.value === var_name) {
                     if (!found_non_usage) {
                       found_usage = true;
-                      return false;
                     }
+                    return false;
                   }
               }
             });
@@ -124,8 +124,8 @@
                     if (inner_child.value === var_name) {
                       if (!found_non_usage) {
                         found_usage = true;
-                        return false;
                       }
+                      return false;
                     }
                 }
               });
@@ -175,7 +175,7 @@
               }
             }
         }
-        if (error_type || found_usage) {
+        if (error_type || found_usage || found_non_usage) {
           return false;
         }
       });
