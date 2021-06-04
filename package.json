@@ -28,11 +28,11 @@
   },
   "homepage": "https://github.com/srgraham/coffeelint-callback-handle-error",
   "peerDependencies": {
-    "coffee-script": "1.10.0"
+    "coffee-script": ">=1.11.0"
   },
   "devDependencies": {
     "chai": "^3.5.0",
-    "coffee-script": "1.10.0",
+    "coffee-script": ">=1.11.0",
     "lodash": "^4.17.11",
     "mocha": "^3.5.3"
   }
